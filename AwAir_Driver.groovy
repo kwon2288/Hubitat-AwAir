@@ -58,8 +58,8 @@ input name: "enableAlerts_temperature", type: "bool", title: "Enable Alerts_temp
 input name: "temperatureLevelBad", type: "number", title: "Alert Level temperature", defaultValue: 90
 input name: "temperatureLevelGood", type: "number", title: "Reset Alert Level temperature", defaultValue: 70
 */
-        input name: "logEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: false
-        input name: "logDebug", type: "bool", title: "Enable debug logging", defaultValue: false
+        input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: false
+        input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: false
 
         //  input "tempOffset", "number", title: "Temperature Offset", description: "Adjust temperature by this many degrees", range: "*..*", displayDuringSetup: false, defaultValue: 0
         //	input "tempUnitConversion", "enum", title: "Temperature Unit Conversion - select F to C, C to F, or no conversion", description: "", defaultValue: "1", required: true, multiple: false, options:[["1":"none"], ["2":"Fahrenheit to Celsius"], ["3":"Celsius to Fahrenheit"]], displayDuringSetup: false
@@ -67,18 +67,18 @@ input name: "temperatureLevelGood", type: "number", title: "Reset Alert Level te
 }
 
 void installed() {
-    if (logDebug) log.debug "installed()..."
+    if (logEnable) log.debug "installed()..."
     refresh()
     runIn(2, poll)
 }
 
 def logsOff() {
     log.warn "debug logging disabled..."
-    device.updateSetting("logEnable", [value: "false", type: "bool"])
+    device.updateSetting("txtEnable", [value: "false", type: "bool"])
 }
 
 def refresh() {
-    if (logDebug) log.debug "refreshing"
+    if (logEnable) log.debug "refreshing"
     fireUpdate("voc",-1,"ppb","voc is ${-1} ppb")
     fireUpdate("pm25",-1,"ug/m3","pm25 is ${-1} ug/m3")
     fireUpdate("airQuality",-1,"","airQuality is ${-1}")
@@ -103,9 +103,9 @@ def poll() {
             path: urlPath,
             contentType: "application/json" ]
         asynchttpGet( 'ReceiveData', Params)
-        if (logDebug) log.debug "poll state"
+        if (logEnable) log.debug "poll state"
     } catch(Exception e) {
-        if (logDebug)
+        if (logEnable)
         log.error "error occured calling httpget ${e}"
         else
             log.error "error occured calling httpget"
@@ -117,7 +117,7 @@ def poll() {
 def ReceiveData(response, data) {
     try{
         if (response.getStatus() == 200 || response.getStatus() == 207) {
-            if (logDebug) log.debug "start parsing"
+            if (logEnable) log.debug "start parsing"
 
             awairData = parseJson( response.data )
 
@@ -250,7 +250,7 @@ void eventProcess(Map evt) {
         evt.isStateChange=true
         sendEvent(evt)
 
-        if (logEnable) log.info device.getName()+" "+evt.descriptionText
-        if (logDebug) log.debug "result : "+evt
+        if (txtEnable) log.info device.getName()+" "+evt.descriptionText
+        if (logEnable) log.debug "result : "+evt
     }
 }
