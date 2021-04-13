@@ -4,7 +4,7 @@
 */
 
 metadata {
-    definition(name: "AwAir", namespace: "awair", author: "Digital_BG", importUrl: "https://raw.githubusercontent.com/DigitalBodyGuard/Hubitat-AwAir/master/AwAir_Driver.groovy")
+    definition(name: "Awair Element", namespace: "awair", author: "Digital_BG", importUrl: "https://raw.githubusercontent.com/DigitalBodyGuard/Hubitat-AwAir/master/AwAir_Driver.groovy")
     {
         capability "Sensor"
         capability "Refresh"
