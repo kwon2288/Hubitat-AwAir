@@ -4,7 +4,7 @@
 */
 
 metadata {
-    definition(name: "AwAir", namespace: "awair", author: "Digital_BG", importUrl: "https://raw.githubusercontent.com/DigitalBodyGuard/Hubitat-AwAir/master/AwAir_Driver.groovy") 
+    definition(name: "AwAir", namespace: "awair", author: "Digital_BG", importUrl: "https://raw.githubusercontent.com/DigitalBodyGuard/Hubitat-AwAir/master/AwAir_Driver.groovy")
     {
         capability "Sensor"
         capability "Refresh"
@@ -17,8 +17,8 @@ metadata {
         attribute "temperature", "number"
         attribute "voc", "number"
         attribute "humidity", "string"
-        attribute "airQuality", "number"	
-        attribute "carbonDioxide", "number" 
+        attribute "airQuality", "number"
+        attribute "carbonDioxide", "number"
 
         attribute "alert_aiq", "ENUM", ["bad","good"]
         attribute "alert_pm25", "ENUM", ["bad","good"]
@@ -58,8 +58,8 @@ input name: "enableAlerts_temperature", type: "bool", title: "Enable Alerts_temp
 input name: "temperatureLevelBad", type: "number", title: "Alert Level temperature", defaultValue: 90
 input name: "temperatureLevelGood", type: "number", title: "Reset Alert Level temperature", defaultValue: 70
 */
-        input name: "logEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: false        
-        input name: "logDebug", type: "bool", title: "Enable debug logging", defaultValue: false  
+        input name: "logEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: false
+        input name: "logDebug", type: "bool", title: "Enable debug logging", defaultValue: false
 
         //  input "tempOffset", "number", title: "Temperature Offset", description: "Adjust temperature by this many degrees", range: "*..*", displayDuringSetup: false, defaultValue: 0
         //	input "tempUnitConversion", "enum", title: "Temperature Unit Conversion - select F to C, C to F, or no conversion", description: "", defaultValue: "1", required: true, multiple: false, options:[["1":"none"], ["2":"Fahrenheit to Celsius"], ["3":"Celsius to Fahrenheit"]], displayDuringSetup: false
@@ -68,7 +68,7 @@ input name: "temperatureLevelGood", type: "number", title: "Reset Alert Level te
 
 void installed() {
     if (logDebug) log.debug "installed()..."
-    refresh()   
+    refresh()
     runIn(2, poll)
 }
 
@@ -98,14 +98,14 @@ def refresh() {
 
 def poll() {
     try {
-        def Params = [ 
+        def Params = [
             uri: ip,
             path: urlPath,
             contentType: "application/json" ]
         asynchttpGet( 'ReceiveData', Params)
         if (logDebug) log.debug "poll state"
     } catch(Exception e) {
-        if (logDebug) 
+        if (logDebug)
         log.error "error occured calling httpget ${e}"
         else
             log.error "error occured calling httpget"
@@ -117,7 +117,7 @@ def poll() {
 def ReceiveData(response, data) {
     try{
         if (response.getStatus() == 200 || response.getStatus() == 207) {
-            if (logDebug) log.debug "start parsing"      
+            if (logDebug) log.debug "start parsing"
 
             Json = parseJson( response.data )
 
@@ -157,7 +157,7 @@ def ReceiveData(response, data) {
             if(enableAlerts_co2)
             {
                 if(getAttribute("alert_co2")=="good")
-                {    
+                {
                     if(Json.co2 > co2LevelBad)
                     fireUpdate_small("alert_co2","bad")
                 }
@@ -169,7 +169,7 @@ def ReceiveData(response, data) {
             if(enableAlerts_voc)
             {
                 if(getAttribute("alert_voc")=="good")
-                {  
+                {
                     if(Json.voc > vocLevelBad)
                     fireUpdate_small("alert_voc","bad")
                 }
@@ -180,7 +180,7 @@ def ReceiveData(response, data) {
             /*      if(enableAlerts_temperature)
 {
 if(getAttribute("alert_temperature")=="good")
-{  
+{
 if(Json.temp > temperatureLevelBad)
 fireUpdate_small("alert_temperature","bad")
 }
@@ -191,7 +191,7 @@ fireUpdate_small("alert_temperature","good")
 if(enableAlerts_humidity)
 {
 if(getAttribute("alert_humidity")=="good")
-{  
+{
 if(Json.humid > humidityLevelBad)
 fireUpdate_small("alert_humidity","bad")
 }
@@ -216,7 +216,7 @@ void fireUpdate(name,value,unit,description)
         descriptionText: description
         //	translatable:true
     ]
-    eventProcess(result)   
+    eventProcess(result)
 }
 
 void fireUpdate_small(name,value)
@@ -225,7 +225,7 @@ void fireUpdate_small(name,value)
         name: name,
         value: value
     ]
-    eventProcess(result)   
+    eventProcess(result)
 }
 
 def getAttribute(name)
@@ -234,7 +234,7 @@ def getAttribute(name)
 }
 
 void eventProcess(Map evt) {
-    if (getAttribute(evt.name).toString() != evt.value.toString() ) 
+    if (getAttribute(evt.name).toString() != evt.value.toString() )
     {
         evt.isStateChange=true
         sendEvent(evt)
