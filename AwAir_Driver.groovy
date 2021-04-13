@@ -119,26 +119,26 @@ def ReceiveData(response, data) {
         if (response.getStatus() == 200 || response.getStatus() == 207) {
             if (logDebug) log.debug "start parsing"
 
-            Json = parseJson( response.data )
+            awairData = parseJson( response.data )
 
-            fireUpdate("voc",Json.voc,"ppb","voc is ${Json.voc} ppb")
-            fireUpdate("pm25",Json.pm25,"ug/m3","pm25 is ${Json.pm25} ug/m3")
-            fireUpdate("airQuality",Json.score,"","airQuality is ${Json.score}")
+            fireUpdate("voc",awairData.voc,"ppb","voc is ${awairData.voc} ppb")
+            fireUpdate("pm25",awairData.pm25,"ug/m3","pm25 is ${awairData.pm25} ug/m3")
+            fireUpdate("airQuality",awairData.score,"","airQuality is ${awairData.score}")
 
-            temperature=convertTemperatureIfNeeded(Json.temp,"c",1)
+            temperature=convertTemperatureIfNeeded(awairData.temp,"c",1)
             fireUpdate("temperature",temperature,"°${location.temperatureScale}","Temperature is ${temperature}°${location.temperatureScale}")
-            fireUpdate("carbonDioxide",Json.co2,"ppm","carbonDioxide is ${Json.co2} ppm")
-            fireUpdate("humidity",(int)Json.humid,"%","humidity is ${Json.humid}")
+            fireUpdate("carbonDioxide",awairData.co2,"ppm","carbonDioxide is ${awairData.co2} ppm")
+            fireUpdate("humidity",(int)awairData.humid,"%","humidity is ${awairData.humid}")
 
             if(enableAlerts_aiq)
             {
                 if(getAttribute("alert_aiq")=="good")
                 {
-                    if(Json.score < aiqLevelBad)
+                    if(awairData.score < aiqLevelBad)
                     fireUpdate_small("alert_aiq","bad")
                 }
                 else
-                    if(Json.score > aiqLevelGood)
+                    if(awairData.score > aiqLevelGood)
                     fireUpdate_small("alert_aiq","good")
             }
 
@@ -146,11 +146,11 @@ def ReceiveData(response, data) {
             {
                 if(getAttribute("alert_pm25")=="good")
                 {
-                    if(Json.pm25 > pm2_5LevelBad)
+                    if(awairData.pm25 > pm2_5LevelBad)
                     fireUpdate_small("alert_pm25","bad")
                 }
                 else
-                    if(Json.pm25 < pm2_5LevelGood)
+                    if(awairData.pm25 < pm2_5LevelGood)
                     fireUpdate_small("alert_pm25","good")
             }
 
@@ -158,11 +158,11 @@ def ReceiveData(response, data) {
             {
                 if(getAttribute("alert_co2")=="good")
                 {
-                    if(Json.co2 > co2LevelBad)
+                    if(awairData.co2 > co2LevelBad)
                     fireUpdate_small("alert_co2","bad")
                 }
                 else
-                    if(Json.co2 < co2LevelGood)
+                    if(awairData.co2 < co2LevelGood)
                     fireUpdate_small("alert_co2","good")
             }
 
@@ -170,33 +170,33 @@ def ReceiveData(response, data) {
             {
                 if(getAttribute("alert_voc")=="good")
                 {
-                    if(Json.voc > vocLevelBad)
+                    if(awairData.voc > vocLevelBad)
                     fireUpdate_small("alert_voc","bad")
                 }
                 else
-                    if(Json.voc < vocLevelGood)
+                    if(awairData.voc < vocLevelGood)
                     fireUpdate_small("alert_voc","good")
             }
             /*      if(enableAlerts_temperature)
 {
 if(getAttribute("alert_temperature")=="good")
 {
-if(Json.temp > temperatureLevelBad)
+if(awairData.temp > temperatureLevelBad)
 fireUpdate_small("alert_temperature","bad")
 }
 else
-if(Json.temp < temperatureLevelGood)
+if(awairData.temp < temperatureLevelGood)
 fireUpdate_small("alert_temperature","good")
 }
 if(enableAlerts_humidity)
 {
 if(getAttribute("alert_humidity")=="good")
 {
-if(Json.humid > humidityLevelBad)
+if(awairData.humid > humidityLevelBad)
 fireUpdate_small("alert_humidity","bad")
 }
 else
-if(Json.humid < humidityLevelGood)
+if(awairData.humid < humidityLevelGood)
 fireUpdate_small("alert_humidity","good")
 }*/
         } else {
