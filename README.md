@@ -52,7 +52,7 @@ these steps:
 The driver supports the following custom preferences to configure:
 
 - **IP Address**: A URL-styled IP address to your Awair Element device. The default
-  value is the example `http://192.168.1.3`. You will want to change this to match
+  value is the example `192.168.1.3`. You will want to change this to match
   the IP of your Element.
 - **Path Address**: The path to the JSON-encoded report of air quality. This defaults
   to `/air-data/latest` and should not need to be changed.
