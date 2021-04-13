@@ -121,26 +121,23 @@ def ReceiveData(response, data) {
 
             awairData = parseJson( response.data )
 
+            // VOC
             fireUpdate("voc",awairData.voc,"ppb","voc is ${awairData.voc} ppb")
-            fireUpdate("pm25",awairData.pm25,"ug/m3","pm25 is ${awairData.pm25} ug/m3")
-            fireUpdate("airQuality",awairData.score,"","airQuality is ${awairData.score}")
 
-            temperature=convertTemperatureIfNeeded(awairData.temp,"c",1)
-            fireUpdate("temperature",temperature,"°${location.temperatureScale}","Temperature is ${temperature}°${location.temperatureScale}")
-            fireUpdate("carbonDioxide",awairData.co2,"ppm","carbonDioxide is ${awairData.co2} ppm")
-            fireUpdate("humidity",(int)awairData.humid,"%","humidity is ${awairData.humid}")
-
-            if(enableAlerts_aiq)
+            if(enableAlerts_voc)
             {
-                if(getAttribute("alert_aiq")=="good")
+                if(getAttribute("alert_voc")=="good")
                 {
-                    if(awairData.score < aiqLevelBad)
-                    fireUpdate_small("alert_aiq","bad")
+                    if(awairData.voc > vocLevelBad)
+                    fireUpdate_small("alert_voc","bad")
                 }
                 else
-                    if(awairData.score > aiqLevelGood)
-                    fireUpdate_small("alert_aiq","good")
+                    if(awairData.voc < vocLevelGood)
+                    fireUpdate_small("alert_voc","good")
             }
+
+            // PM 2.5
+            fireUpdate("pm25",awairData.pm25,"ug/m3","pm25 is ${awairData.pm25} ug/m3")
 
             if(enableAlerts_pm25)
             {
@@ -154,6 +151,28 @@ def ReceiveData(response, data) {
                     fireUpdate_small("alert_pm25","good")
             }
 
+            // AIQ Score
+            fireUpdate("airQuality",awairData.score,"","airQuality is ${awairData.score}")
+
+            if(enableAlerts_aiq)
+            {
+                if(getAttribute("alert_aiq")=="good")
+                {
+                    if(awairData.score < aiqLevelBad)
+                    fireUpdate_small("alert_aiq","bad")
+                }
+                else
+                    if(awairData.score > aiqLevelGood)
+                    fireUpdate_small("alert_aiq","good")
+            }
+
+            // Temperature
+            temperature=convertTemperatureIfNeeded(awairData.temp,"c",1)
+            fireUpdate("temperature",temperature,"°${location.temperatureScale}","Temperature is ${temperature}°${location.temperatureScale}")
+
+            // CO2
+            fireUpdate("carbonDioxide",awairData.co2,"ppm","carbonDioxide is ${awairData.co2} ppm")
+
             if(enableAlerts_co2)
             {
                 if(getAttribute("alert_co2")=="good")
@@ -166,17 +185,9 @@ def ReceiveData(response, data) {
                     fireUpdate_small("alert_co2","good")
             }
 
-            if(enableAlerts_voc)
-            {
-                if(getAttribute("alert_voc")=="good")
-                {
-                    if(awairData.voc > vocLevelBad)
-                    fireUpdate_small("alert_voc","bad")
-                }
-                else
-                    if(awairData.voc < vocLevelGood)
-                    fireUpdate_small("alert_voc","good")
-            }
+            // Humidity
+            fireUpdate("humidity",(int)awairData.humid,"%","humidity is ${awairData.humid}")
+
             /*      if(enableAlerts_temperature)
 {
 if(getAttribute("alert_temperature")=="good")
