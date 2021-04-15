@@ -19,10 +19,10 @@ metadata {
         attribute "airQuality", "number"
         attribute "carbonDioxide", "number"
 
-        attribute "alert_aiq", "ENUM", ["unknown", "bad", "good"]
-        attribute "alert_pm25", "ENUM", ["unknown", "bad", "good"]
-        attribute "alert_co2", "ENUM", ["unknown", "bad", "good"]
-        attribute "alert_voc", "ENUM", ["unknown", "bad", "good"]
+        attribute "aiq_desc", "ENUM", ["unknown", "poor", "fair", "good"]
+        attribute "pm25_desc", "ENUM", ["unknown", "hazardous", "bad", "poor", "fair", "good"]
+        attribute "co2_desc", "ENUM", ["unknown", "hazardous", "bad", "poor", "fair", "good"]
+        attribute "voc_desc", "ENUM", ["unknown", "hazardous", "bad", "poor", "fair", "good"]
     }
 
     preferences {
@@ -78,10 +78,10 @@ def refresh() {
     fireUpdate("carbonDioxide", -1, "ppm", "carbonDioxide is ${-1} ppm")
     fireUpdate("humidity", -1, "%", "humidity is ${-1}")
 
-    fireUpdate_small("alert_aiq", "unknown")
-    fireUpdate_small("alert_voc", "unknown")
-    fireUpdate_small("alert_co2", "unknown")
-    fireUpdate_small("alert_pm25", "unknown")
+    fireUpdate_small("aiq_desc", "unknown")
+    fireUpdate_small("voc_desc", "unknown")
+    fireUpdate_small("co2_desc", "unknown")
+    fireUpdate_small("pm25_desc", "unknown")
 
     runIn(2, poll)
 }
@@ -120,48 +120,71 @@ def receiveData(response, data) {
             awairData = parseJson(response.data)
 
             // VOC
-            fireUpdate("voc", awairData.voc, "ppb", "voc is ${awairData.voc} ppb")
+            currVocDesc = getAttribute("voc_desc")
+            vocLevel = awairData.voc
+            newVocDesc = "unknown"
 
-            if (enableAlerts_voc) {
-                if (getAttribute("alert_voc") == "good") {
-                    if (awairData.voc > vocLevelBad) {
-                        fireUpdate_small("alert_voc", "bad")
-                    }
-                } else {
-                    if (awairData.voc < vocLevelGood) {
-                        fireUpdate_small("alert_voc", "good")
-                    }
-                }
+            fireUpdate("voc", vocLevel, "ppb", "voc is ${vocLevel} ppb")
+
+            // Calculate VOC Descriptive Text
+            if (vocLevel > 8332) {
+                newVocDesc = "hazardous"
+            } else if (vocLevel > 3333) {
+                newVocDesc = "bad"
+            } else if (vocLevel > 1000) {
+                newVocDesc = "poor"
+            } else if (vocLevel > 333) {
+                newVocDesc = "fair"
+            } else {
+                newVocDesc = "good"
+            }
+
+            if (currVocDesc != newVocDesc) {
+                fireUpdate_small("voc_desc", newVocDesc)
             }
 
             // PM 2.5
-            fireUpdate("pm25", awairData.pm25, "ug/m3", "pm25 is ${awairData.pm25} ug/m3")
+            currPm25Desc = getAttribute("alert_pm25")
+            pm25Level = awairData.pm25
+            newPm25Desc = "unknown"
 
-            if (enableAlerts_pm25) {
-                if (getAttribute("alert_pm25") == "good") {
-                    if (awairData.pm25 > pm2_5LevelBad) {
-                        fireUpdate_small("alert_pm25", "bad")
-                    }
-                } else {
-                    if (awairData.pm25 < pm2_5LevelGood) {
-                        fireUpdate_small("alert_pm25", "good")
-                    }
-                }
+            fireUpdate("pm25", pm25Level, "ug/m3", "pm25 is ${pm25Level} ug/m3")
+
+            // Calculate PM 2.5 Descriptive Text
+            if (pm25Level > 75) {
+                newPm25Desc = "hazardous"
+            } else if (pm25Level > 55) {
+                newPm25Desc = "bad"
+            } else if (pm25Level > 35) {
+                newPm25Desc = "poor"
+            } else if (pm25Level > 15) {
+                newPm25Desc = "fair"
+            } else {
+                newPm25Desc = "good"
+            }
+
+            if (currPm25Desc != newPm25Desc) {
+                fireUpdate_small("pm25_desc", newPm25Desc)
             }
 
             // AIQ Score
-            fireUpdate("airQuality", awairData.score, "", "airQuality is ${awairData.score}")
+            currAiqDesc = getAttribute("aiq_desc") // Grab the current descriptive text for the AIQ score
+            aiqScore = awairData.score
+            newAiqScore = "unknown"
 
-            if (enableAlerts_aiq) {
-                if (getAttribute("alert_aiq") == "good") {
-                    if (awairData.score < aiqLevelBad) {
-                        fireUpdate_small("alert_aiq", "bad")
-                    }
-                } else {
-                    if (awairData.score > aiqLevelGood) {
-                        fireUpdate_small("alert_aiq", "good")
-                    }
-                }
+            fireUpdate("airQuality", aiqScore, "", "Awair Score is ${aiqScore}")
+
+            // Calculate the text description for the Score
+            if (aiqScore > 80) {
+                newAiqScore = "good"
+            } else if (aiqScore > 60) {
+                newAiqScore = "fair"
+            } else {
+                newAiqScore = "poor"
+            }
+
+            if (currAiqDesc != newAiqScore) {
+                fireUpdate_small("aiq_desc", newAiqScore)
             }
 
             // Temperature
@@ -169,18 +192,27 @@ def receiveData(response, data) {
             fireUpdate("temperature", temperature, "°${location.temperatureScale}", "Temperature is ${temperature}°${location.temperatureScale}")
 
             // CO2
-            fireUpdate("carbonDioxide", awairData.co2, "ppm", "carbonDioxide is ${awairData.co2} ppm")
+            currCo2Desc = getAttribute("co2_desc")
+            co2Level = awairData.co2
+            newCo2Desc = "unknown"
 
-            if (enableAlerts_co2) {
-                if (getAttribute("alert_co2") == "good") {
-                    if (awairData.co2 > co2LevelBad) {
-                        fireUpdate_small("alert_co2", "bad")
-                    }
-                } else {
-                    if (awairData.co2 < co2LevelGood) {
-                        fireUpdate_small("alert_co2", "good")
-                    }
-                }
+            fireUpdate("carbonDioxide", co2Level, "ppm", "carbonDioxide is ${co2Level} ppm")
+
+            // Calculate CO2 Descriptive Text
+            if (co2Level > 2500) {
+                newCo2Desc = "hazardous"
+            } else if (co2Level > 1500) {
+                newCo2Desc = "bad"
+            } else if (co2Level > 1000) {
+                newCo2Desc = "poor"
+            } else if (co2Level > 600) {
+                newCo2Desc = "fair"
+            } else {
+                newCo2Desc = "good"
+            }
+
+            if (currCo2Desc != newCo2Desc) {
+                fireUpdate_small("co2_desc", newCo2Desc)
             }
 
             // Humidity
