@@ -4,13 +4,15 @@
 */
 
 metadata {
-    definition(name: "Awair Element", namespace: "awair", author: "Digital_BG", importUrl: "https://raw.githubusercontent.com/DigitalBodyGuard/Hubitat-AwAir/master/AwAir_Driver.groovy") {
+    definition(name: "Awair Element", namespace: "awair", author: "Digital_BG", importUrl: "https://raw.githubusercontent.com/srvrguy/Hubitat-AwAir/master/AwAir_Driver.groovy") {
+        capability "Polling" // poll()
+        capability "Configuration" // configure()
+        capability "Initialize" // initialize()
         capability "Sensor"
-        capability "Refresh"
-        capability "Polling"
         capability "TemperatureMeasurement"
         capability "CarbonDioxideMeasurement"
         capability "RelativeHumidityMeasurement"
+        capability "AirQuality"
 
         attribute "pm25", "number"
         attribute "temperature", "number"
@@ -18,6 +20,7 @@ metadata {
         attribute "humidity", "string"
         attribute "airQuality", "number"
         attribute "carbonDioxide", "number"
+        attribute "airQualityIndex", "number"
 
         attribute "aiq_desc", "ENUM", ["unknown", "poor", "fair", "good"]
         attribute "pm25_desc", "ENUM", ["unknown", "hazardous", "bad", "poor", "fair", "good"]
@@ -31,52 +34,46 @@ metadata {
 
         input name: "pollingInterval", type: "number", title: "Time (seconds) between status checks", defaultValue: 300
 
-        input name: "enableAlerts_pm25", type: "bool", title: "Enable Alerts_pm25", defaultValue: true
-        input name: "pm2_5LevelBad", type: "number", title: "Alert Level pm2.5", defaultValue: 40
-        input name: "pm2_5LevelGood", type: "number", title: "Reset Alert Level pm2.5", defaultValue: 30
-
-        input name: "enableAlerts_co2", type: "bool", title: "Enable Alerts_co2", defaultValue: true
-        input name: "co2LevelBad", type: "number", title: "Alert Level co2", defaultValue: 1000
-        input name: "co2LevelGood", type: "number", title: "Reset Alert Level co2", defaultValue: 800
-
-        input name: "enableAlerts_voc", type: "bool", title: "Enable Alerts_voc", defaultValue: true
-        input name: "vocLevelBad", type: "number", title: "Alert Level voc", defaultValue: 1000
-        input name: "vocLevelGood", type: "number", title: "Reset Alert Level voc", defaultValue: 800
-
-        input name: "enableAlerts_aiq", type: "bool", title: "Enable Alerts_aiq", defaultValue: true
-        input name: "aiqLevelBad", type: "number", title: "Alert Level low airQuality", defaultValue: 60
-        input name: "aiqLevelGood", type: "number", title: "Reset Alert Level high airQuality", defaultValue: 70
-
         input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: false
         input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: false
     }
 }
 
+// Runs when the driver is installed
 void installed() {
     if (logEnable) {
         log.debug "installed..."
     }
 
-    refresh()
+    initialize()
     runIn(2, poll)
 }
 
-def logsOff() {
-    log.warn "debug logging disabled..."
-    device.updateSetting("txtEnable", [value: "false", type: "bool"])
+// Runs when the driver preferences are saved/updated
+void updated() {
+    configure()
+    runIn(2, poll)
 }
 
-def refresh() {
+// Method for the initialize capability
+// Currently, this just resets the attributes and calls the method to poll the device
+def initialize() {
     if (logEnable) {
-        log.debug "refreshing"
+        log.debug "initializing values"
     }
 
+    //Clear and initialize any state variables
+    state.clear()
+    state.pm25readings = []
+
+    //Set some initial values
     fireUpdate("voc", -1, "ppb", "voc is ${-1} ppb")
     fireUpdate("pm25", -1, "ug/m3", "pm25 is ${-1} ug/m3")
     fireUpdate("airQuality", -1, "", "airQuality is ${-1}")
     fireUpdate("temperature", -1, "°${location.temperatureScale}", "Temperature is ${-1}°${location.temperatureScale}")
     fireUpdate("carbonDioxide", -1, "ppm", "carbonDioxide is ${-1} ppm")
     fireUpdate("humidity", -1, "%", "humidity is ${-1}")
+    fireUpdate("airQualityIndex", 0, "", "Current calculated AQI is 0")
 
     fireUpdate_small("aiq_desc", "unknown")
     fireUpdate_small("voc_desc", "unknown")
@@ -86,6 +83,65 @@ def refresh() {
     runIn(2, poll)
 }
 
+// Method for the configuration capability
+// TODO - Don't use this, instead integrate into the main code
+def configure() {
+    try {
+        def Params = [
+                uri        : "http://" + ip,
+                path       : "/settings/config/data",
+                contentType: "application/json"
+        ]
+
+        asynchttpGet('parseConfig', Params)
+
+        if (logEnable) {
+            log.debug "poll state"
+        }
+    } catch (Exception e) {
+        if (logEnable) {
+            log.error "error occured calling httpget ${e}"
+        } else {
+            log.error "error occured calling httpget"
+        }
+    }
+
+    runIn(pollingInterval, poll)
+}
+
+def logsOff() {
+    log.warn "debug logging disabled..."
+    device.updateSetting("txtEnable", [value: "false", type: "bool"])
+}
+
+def parseConfig(response, data) {
+    try {
+        if (response.getStatus() == 200 || response.getStatus() == 207) {
+            if (logEnable) {
+                log.debug "start parsing"
+            }
+
+            awairConfig = parseJson(response.data)
+
+            //Awair UUID
+            updateDataValue("Device UUID", awairConfig.device_uuid)
+
+            //Awair MAC
+            updateDataValue("MAC Address", awairConfig.wifi_mac)
+
+            //Awair Firmware Version
+            updateDataValue("Firmware", awairConfig.fw_version)
+
+        } else {
+            log.error "parsing error"
+        }
+    } catch (Exception e) {
+        log.error "error #5415 : ${e}"
+    }
+}
+
+
+// Method for the polling capability
 def poll() {
     try {
         def Params = [
@@ -167,6 +223,13 @@ def receiveData(response, data) {
                 fireUpdate_small("pm25_desc", newPm25Desc)
             }
 
+            //Figure out the EPA AQI
+            state.pm25readings << pm25Level
+            currAqi = calculateAqi()
+
+            fireUpdate("airQualityIndex", currAqi, "", "Current calculated AQI is ${currAqi}")
+
+
             // AIQ Score
             currAiqDesc = getAttribute("aiq_desc") // Grab the current descriptive text for the AIQ score
             aiqScore = awairData.score
@@ -224,6 +287,49 @@ def receiveData(response, data) {
     } catch (Exception e) {
         log.error "error #5415 : ${e}"
     }
+}
+
+// Calculate the AQI based on the stored PM2.5 Values
+int calculateAqi() {
+    // AQI PM2.5 Breakpoints
+    // From data at https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html
+    // Using "PM2.5 - Local Conditions" data
+    // Updated 2021 July 19
+    def aqiBreakpoints = [
+            [bpLow: 0.0, bpHigh: 12.0, aqiLow: 0, aqiHigh: 50, category: "Good"],
+            [bpLow: 12.1, bpHigh: 35.4, aqiLow: 51, aqiHigh: 100, category: "Moderate"],
+            [bpLow: 35.5, bpHigh: 55.4, aqiLow: 101, aqiHigh: 150, category: "Unhealthy for Sensitive Groups"],
+            [bpLow: 55.5, bpHigh: 150.4, aqiLow: 151, aqiHigh: 200, category: "Unhealthy"],
+            [bpLow: 150.5, bpHigh: 250.4, aqiLow: 201, aqiHigh: 300, category: "Very Unhealthy"],
+            [bpLow: 250.5, bpHigh: 350.4, aqiLow: 301, aqiHigh: 400, category: "Hazardous"],
+            [bpLow: 350.5, bpHigh: 500.4, aqiLow: 401, aqiHigh: 500, category: "Hazardous"],
+            [bpLow: 500.5, bpHigh: 99999.9, aqiLow: 501, aqiHigh: 999, category: "Hazardous"]
+    ]
+
+    while (state.pm25readings.size() > 5) { //TODO - Do we want a dynamic max size based on update frequency?
+        state.pm25readings.removeAt(0)
+    }
+
+    def totalPM25 = 0
+    state.pm25readings.each { totalPM25 = totalPM25 + it }
+
+    def avgPM25 = totalPM25 / state.pm25readings.size()
+    state.avgPM25 = avgPM25 // TODO
+
+    def aqiTier = [:]
+    aqiBreakpoints.each {
+        if (avgPM25 >= it.bpLow && myValue <= it.bpHigh) {
+            aqiTier = it
+        }
+    }
+    state.aqiBreakpoint = aqiTier // TODO
+
+    //Now the fancy AQI formula
+    def rawAqi = (aqiTier.aqiHigh - aqiTier.aqiLow) / (aqiTier.bpHigh - aqiTier.bpLow) * (avgPM25 - aqiTier.bpLow) + aqiTier.aqiLow
+
+    state.rawAqi = rawAqi // TODO
+
+    return Math.round(rawAqi)
 }
 
 void fireUpdate(name, value, unit, description) {
