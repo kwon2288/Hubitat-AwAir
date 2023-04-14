@@ -1,5 +1,5 @@
 /*
-*  Hubitat Driver for AwAir Local
+*  Hubitat Driver for Awair Omni
 */
 
 metadata {
