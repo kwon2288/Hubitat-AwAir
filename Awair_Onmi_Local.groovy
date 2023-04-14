@@ -19,8 +19,8 @@ metadata {
         attribute "humidity", "string"
         attribute "airQuality", "number"
 		attribute "lux", "number"
-	    attribute "spl_a", "number"
-        attribute "carbonDioxide", "number"
+		attribute "spl_a", "number"
+		attribute "carbonDioxide", "number"
         attribute "airQualityIndex", "number"
 
         attribute "aiq_desc", "ENUM", ["unknown", "poor", "fair", "good"]
