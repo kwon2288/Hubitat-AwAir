@@ -13,5 +13,5 @@ This driver supports the following measurements provided by the Awair Omni:
 - Carbon Dioxide (CO2) level in ppm
 - Chemicals (TVOC) level in ppb
 - PM2.5 level in ug/m3
-- Lux level in lux
+- Illuminance level in lux
 - Noise level in dB
