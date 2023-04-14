@@ -1,7 +1,7 @@
 # Awair Omni Driver for Hubitat
 
 ## About
-This is a Hubitat driver for the [Awair Element](https://www.getawair.com/products/omni)
+This is a Hubitat driver for the [Awair Omni](https://www.getawair.com/products/omni)
 air quality monitor. It uses the local API available in the device for better reliability and ease of setup.
 
 ## Features
