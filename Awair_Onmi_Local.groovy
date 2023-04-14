@@ -3,7 +3,7 @@
 */
 
 metadata {
-    definition(name: "Awair Omni Local", namespace: "awair", author: "kwon2288", importUrl: "https://raw.githubusercontent.com/kwon2288/hubitat/main/Awair_Local.groovy") {
+    definition(name: "Awair Omni Local", namespace: "awair", author: "kwon2288", importUrl: "https://raw.githubusercontent.com/kwon2288/Hubitat-AwAir/master/Awair_Onmi_Local.groovy") {
         capability "Polling" // poll()
         capability "Configuration" // configure()
         capability "Initialize" // initialize()
