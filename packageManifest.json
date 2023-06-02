@@ -1,0 +1,17 @@
+{
+  "packageName": "Hubitat Driver for Awair Omni Local",
+  "author": "kwon2288",
+  "version": "1.0",
+  "dateReleased": "2023-04-14",
+  "releaseNotes": "1.0 2023-04-13 - first release version\n",
+  "documentationLink": "https://github.com/kwon2288/Hubitat-AwAir/blob/master/README.md",
+  "drivers": [
+    {
+      "id": "dmb7afd8-9786-4298-9b50-a9d57fcf53f3",
+      "name": "Awair Omni Local",
+      "namespace": "kwon2288",
+      "location": "https://raw.githubusercontent.com/kwon2288/Hubitat-AwAir/master/Awair_Onmi_Local.groovy",
+      "required": true
+    }
+  ]
+}
