@@ -74,8 +74,8 @@ def initialize() {
     fireUpdate("temperature", -1, "°${location.temperatureScale}", "Temperature is ${-1}°${location.temperatureScale}")
     fireUpdate("carbonDioxide", -1, "ppm", "carbonDioxide is ${-1} ppm")
     fireUpdate("humidity", -1, "%", "humidity is ${-1}")
-	fireUpdate("lux", -1, "lux", "Lux is ${-1} lux")
-	fireUpdate("noise", -1, "dB", "Noise is ${-1} dB")
+    fireUpdate("lux", -1, "lux", "Lux is ${-1} lux")
+    fireUpdate("noise", -1, "dB", "Noise is ${-1} dB")
     fireUpdate("airQualityIndex", 0, "", "Current calculated AQI is 0")
 
     fireUpdate_small("aiq_desc", "unknown")
@@ -284,7 +284,7 @@ def receiveData(response, data) {
             // Humidity
             fireUpdate("humidity", (int) awairData.humid, "%", "humidity is ${awairData.humid}")
 			
-	        // Lux
+	    // Lux
             fireUpdate("lux", (int) awairData.lux, "lux", "lux is ${awairData.lux} lux")
 			
             // Noise
