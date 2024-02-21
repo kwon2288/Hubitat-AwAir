@@ -19,7 +19,7 @@ metadata {
         attribute "humidity", "string"
         attribute "airQuality", "number"
 	attribute "lux", "number"
-	attribute "spl_a", "number"
+	attribute "Noise", "number"
 	attribute "carbonDioxide", "number"
         attribute "airQualityIndex", "number"
 
@@ -288,7 +288,7 @@ def receiveData(response, data) {
             fireUpdate("lux", (int) awairData.lux, "lux", "lux is ${awairData.lux} lux")
 			
             // Noise
-            fireUpdate("spl_a", (int) awairData.spl_a, "dB", "Noise is ${awairData.spl_a} dB")
+            fireUpdate("Noise", (int) awairData.spl_a, "dB", "Noise is ${awairData.spl_a} dB")
 
         } else {
             log.error "parsing error"
