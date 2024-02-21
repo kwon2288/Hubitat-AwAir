@@ -18,9 +18,9 @@ metadata {
         attribute "voc", "number"
         attribute "humidity", "string"
         attribute "airQuality", "number"
-	    attribute "lux", "number"
-	    attribute "noise", "number"
-	    attribute "carbonDioxide", "number"
+        attribute "lux", "number"
+	attribute "noise", "number"
+	attribute "carbonDioxide", "number"
         attribute "airQualityIndex", "number"
 
         attribute "aiq_desc", "ENUM", ["unknown", "poor", "fair", "good"]
