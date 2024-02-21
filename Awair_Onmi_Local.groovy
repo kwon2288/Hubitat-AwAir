@@ -18,9 +18,9 @@ metadata {
         attribute "voc", "number"
         attribute "humidity", "string"
         attribute "airQuality", "number"
-	attribute "lux", "number"
-	attribute "Noise", "number"
-	attribute "carbonDioxide", "number"
+	    attribute "lux", "number"
+	    attribute "noise", "number"
+	    attribute "carbonDioxide", "number"
         attribute "airQualityIndex", "number"
 
         attribute "aiq_desc", "ENUM", ["unknown", "poor", "fair", "good"]
@@ -75,7 +75,7 @@ def initialize() {
     fireUpdate("carbonDioxide", -1, "ppm", "carbonDioxide is ${-1} ppm")
     fireUpdate("humidity", -1, "%", "humidity is ${-1}")
 	fireUpdate("lux", -1, "lux", "Lux is ${-1} lux")
-	fireUpdate("spl_a", -1, "dB", "Noise is ${-1} dB")
+	fireUpdate("noise", -1, "dB", "Noise is ${-1} dB")
     fireUpdate("airQualityIndex", 0, "", "Current calculated AQI is 0")
 
     fireUpdate_small("aiq_desc", "unknown")
@@ -284,11 +284,11 @@ def receiveData(response, data) {
             // Humidity
             fireUpdate("humidity", (int) awairData.humid, "%", "humidity is ${awairData.humid}")
 			
-	    // Lux
+	        // Lux
             fireUpdate("lux", (int) awairData.lux, "lux", "lux is ${awairData.lux} lux")
 			
             // Noise
-            fireUpdate("Noise", (int) awairData.spl_a, "dB", "Noise is ${awairData.spl_a} dB")
+            fireUpdate("noise", (int) awairData.spl_a, "dB", "Noise is ${awairData.spl_a} dB")
 
         } else {
             log.error "parsing error"
