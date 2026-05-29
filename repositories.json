@@ -1,0 +1,12 @@
+{
+  "author": "kwon2288",
+  "gitHubUrl": "https://github.com/kwon2288",
+  "packages": [
+    {
+      "name": "Awair Omni Driver",
+      "category": "Integrations",
+      "location": "https://raw.githubusercontent.com/kwon2288/Hubitat-AwAir/master/packageManifest.json",
+      "description": "Hubitat driver for Awair Omni air quality monitor using local API"
+    }
+  ]
+}
