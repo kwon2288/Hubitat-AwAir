@@ -290,13 +290,13 @@ def receiveData(response, data) {
             }
 
             // Humidity
-            fireUpdate("humidity", (int) awairData.humid, "%", "humidity is ${awairData.humid}")
+            if (awairData.humid != null) fireUpdate("humidity", (int) awairData.humid, "%", "humidity is ${awairData.humid}")
 			
 	    // Lux
-            fireUpdate("lux", (int) awairData.lux, "lux", "lux is ${awairData.lux} lux")
+            if (awairData.lux != null) fireUpdate("lux", (int) awairData.lux, "lux", "lux is ${awairData.lux} lux")
 			
             // Noise
-            fireUpdate("noise", (int) awairData.spl_a, "dB", "Noise is ${awairData.spl_a} dB")
+            if (awairData.spl_a != null) fireUpdate("noise", (int) awairData.spl_a, "dB", "Noise is ${awairData.spl_a} dB")
 
         } else {
             log.error "Awair request to ${getBaseUri()} failed: HTTP ${response.getStatus()} ${response.getErrorMessage() ?: ''}"
